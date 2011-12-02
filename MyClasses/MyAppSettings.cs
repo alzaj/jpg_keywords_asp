@@ -34,24 +34,26 @@ namespace MVCJpgKeywords.MyClasses
             Boolean needSave = false
             Configuration myConfiguration = System.Web.Configuration.WebConfigurationManager.OpenWebConfiguration("~");
             AppSettingsTemplateConfSection templSection = myConfiguration.Sections("AppSettingsTemplate");
-            If templSection Is Nothing Then
-                templSection = New AppSettingsTemplateConfSection
-                myConfiguration.Sections.Add("AppSettingsTemplate", templSection)
-                needSave = True
-            End If
-            Dim ausgabe As String = templSection.settingKeys
-            If String.IsNullOrEmpty(ausgabe) Then 'creating AppSettingsTemplate key
-                Dim val As String = ""
-                Dim separator As String = ""
-                For Each s As String In MyAppSettings.EnumerateAppSettingKeys
-                    val += separator + s
-                    separator = ";"
-                Next
+            if (templSection == null){
+                templSection = new AppSettingsTemplateConfSection;
+                myConfiguration.Sections.Add("AppSettingsTemplate", templSection);
+                needSave = true;
+            }
+
+
+            string ausgabe  = templSection.settingKeys;
+            if (string.IsNullOrEmpty(ausgabe)){ //creating AppSettingsTemplate key
+                string val = "";
+                string separator = "";
+                foreach (string s in MyAppSettings.EnumerateAppSettingKeys()){
+                    val += separator + s;
+                    separator = ";";
+                }
 
                 templSection.settingKeys = val
                 ausgabe = templSection.settingKeys
                 needSave = True
-            End If
+            }
             If needSave Then
                 myConfiguration.Save()
                 System.Configuration.ConfigurationManager.RefreshSection("AppSettingsTemplate")
@@ -154,17 +156,17 @@ namespace MVCJpgKeywords.MyClasses
         return ausgabe
     End Function
 
-    ''' <summary>
-    ''' Converts the value stored in ConfigurationManager.AppSettings section to integer.
-    ''' If the key doesn't exist - returns standardValue from second parameter.
-    ''' </summary>
-    ''' <param name="settingName">AppSettings key name</param>
-    ''' <param name="standardValue">Value to use if the AppSettings key doesn't exist</param>
-    ''' <returns></returns>
-    ''' <remarks></remarks>
-    Protected static Function GetIntegerFromAppSettings(ByVal settingName As String, ByVal standardValue As Integer) As Integer
-        Dim ausgabe As Integer = standardValue
-        Dim settingValue As String = ConfigurationManager.AppSettings(settingName)
+    /// <summary>
+    /// Converts the value stored in ConfigurationManager.AppSettings section to integer.
+    /// If the key doesn't exist - returns standardValue from second parameter.
+    /// </summary>
+    /// <param name="settingName">AppSettings key name</param>
+    /// <param name="standardValue">Value to use if the AppSettings key doesn't exist</param>
+    /// <returns></returns>
+    /// <remarks></remarks>
+    internal static int GetIntegerFromAppSettings(ByVal settingName As String, ByVal standardValue As Integer){
+        int ausgabe = standardValue;
+        string settingValue= ConfigurationManager.AppSettings(settingName);
         If Not String.IsNullOrEmpty(settingValue) Then
             Try
                 ausgabe = CType(settingValue, Integer)
@@ -172,30 +174,30 @@ namespace MVCJpgKeywords.MyClasses
             End Try
         End If
         return ausgabe
-    End Function
+       }
 
-    ''' <summary>
-    ''' returns the value stored in ConfigurationManager.AppSettings section.
-    ''' </summary>
-    ''' <param name="settingName">AppSettings key name</param>
-    ''' <param name="standardValue">Value to use if the AppSettings key doesn't exist.</param>
-    ''' <returns></returns>
-    ''' <remarks></remarks>
-    Protected static Function GetStringFromAppSettings(ByVal settingName As String, Optional ByVal standardValue As String = "") As String
+    /// <summary>
+    /// returns the value stored in ConfigurationManager.AppSettings section.
+    /// </summary>
+    /// <param name="settingName">AppSettings key name</param>
+    /// <param name="standardValue">Value to use if the AppSettings key doesn't exist.</param>
+    ///returns></returns>
+    /// <remarks></remarks>
+    internal static string GetStringFromAppSettings(string settingName, string standardValue = "") {  
         Dim ausgabe As String = ConfigurationManager.AppSettings(settingName)
         If ausgabe Is Nothing Then ausgabe = standardValue
         return ausgabe
-    End Function
+    }
 
-    public static Function EnumerateAppSettingKeys() As List(Of String)
-        Dim ausgabe As New List(Of String)
+    public static List<string> EnumerateAppSettingKeys() {
+        List<string> ausgabe;
         For Each k As String In ConfigurationManager.AppSettings.Keys
             If Not k = "AppSettingsTemplate" Then
                 ausgabe.Add(k)
             End If
         Next
         return ausgabe
-    End Function
+    }
 
     public static Function EnumerateAppSettingsTemplate() As List(Of String)
         Dim ausgabe As New List(Of String)
