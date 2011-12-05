@@ -13,7 +13,7 @@ namespace MVCJpgKeywords.Controllers
 
         public string Index()
         {
-            return "Hello World! (from jpg_keywords)";
+            return "Hello World! (from jpg_keywords) Title: " + MyClasses.MyAppSettings.PageTitlePrefix;
         }
 
     }

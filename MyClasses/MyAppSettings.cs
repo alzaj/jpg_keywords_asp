@@ -23,7 +23,7 @@ namespace MVCJpgKeywords.MyClasses
 #region "Settings - String"
 
     //Email addresses who wants to receive new registration notifications
-    public static readonly  String PageTitlePrefix{
+    public static string PageTitlePrefix{
         get{
             return GetStringFromAppSettings("PageTitlePrefix","");
         }
@@ -31,11 +31,11 @@ namespace MVCJpgKeywords.MyClasses
 
     public static string AppSettingsTemplate {
         get{
-            Boolean needSave = false
+            Boolean needSave = false;
             Configuration myConfiguration = System.Web.Configuration.WebConfigurationManager.OpenWebConfiguration("~");
-            AppSettingsTemplateConfSection templSection = myConfiguration.Sections("AppSettingsTemplate");
+            AppSettingsTemplateConfSection templSection = (AppSettingsTemplateConfSection)myConfiguration.Sections["AppSettingsTemplate"];
             if (templSection == null){
-                templSection = new AppSettingsTemplateConfSection;
+                templSection = new AppSettingsTemplateConfSection();
                 myConfiguration.Sections.Add("AppSettingsTemplate", templSection);
                 needSave = true;
             }
@@ -50,111 +50,95 @@ namespace MVCJpgKeywords.MyClasses
                     separator = ";";
                 }
 
-                templSection.settingKeys = val
-                ausgabe = templSection.settingKeys
-                needSave = True
+                templSection.settingKeys = val;
+                ausgabe = templSection.settingKeys;
+                needSave = true;
             }
-            If needSave Then
-                myConfiguration.Save()
-                System.Configuration.ConfigurationManager.RefreshSection("AppSettingsTemplate")
-            End If
-            return ausgabe
+            if (needSave){ 
+                myConfiguration.Save();
+                System.Configuration.ConfigurationManager.RefreshSection("AppSettingsTemplate");
+            }
+            return ausgabe;
         }
         set{
-            Dim a As String = AppSettingsTemplate 'becouse Get initiates the ConfigSection if it absent
-            Dim myConfiguration As Configuration = System.Web.Configuration.WebConfigurationManager.OpenWebConfiguration("~")
-            Dim templSection As AppSettingsTemplateConfSection = myConfiguration.Sections("AppSettingsTemplate")
-            templSection.settingKeys = value
-            myConfiguration.Save()
-            System.Configuration.ConfigurationManager.RefreshSection("AppSettingsTemplate")
+            string a = AppSettingsTemplate; //becouse Get initiates the ConfigSection if it absent
+            Configuration  myConfiguration = System.Web.Configuration.WebConfigurationManager.OpenWebConfiguration("~");
+            AppSettingsTemplateConfSection templSection = (AppSettingsTemplateConfSection)myConfiguration.Sections["AppSettingsTemplate"];
+            templSection.settingKeys = value;
+            myConfiguration.Save();
+            System.Configuration.ConfigurationManager.RefreshSection("AppSettingsTemplate");
         }
     }
 
 
 #endregion //Settings - String
 
-#Region "Settings - Boolean"
+#region "Settings - Boolean"
 
-    ''' <summary>
-    ''' Some settings and messages in the application output more detailed information, if this flag is set.
-    ''' </summary>
-    ''' <returns></returns>
-    ''' <remarks></remarks>
-    public static readonly Property IsDebugMode() As Boolean
-        Get
-            return GetBooleanFromAppSettings("IsDebugMode", False)
-        End Get
-    End Property
+    /// <summary>
+    /// Some settings and messages in the application output more detailed information, if this flag is set.
+    /// </summary>
+    /// <returns></returns>
+    /// <remarks></remarks>
+    public static Boolean IsDebugMode {
+        get {
+            return GetBooleanFromAppSettings("IsDebugMode", false);
+        }
+    }
 
-    ''' <summary>
-    ''' In the last wizard step the user will be asked to confirm his agreement about saving his data in the database.
-    ''' </summary>
-    ''' <returns></returns>
-    ''' <remarks></remarks>
-    public static readonly Property AskUserForAgreement() As Boolean
-        Get
-            return GetBooleanFromAppSettings("AskUserForAgreement", False)
-        End Get
-    End Property
+#endregion //Settings - Boolean
 
-    public static readonly Property IsThisAppFeldmaessig() As Boolean
-        Get
-            return GetBooleanFromAppSettings("IsThisAppFeldmaessig", False)
-        End Get
-    End Property
+#region "Settings - Integer"
+    public static int maxNumberOfParticipants{
+        get{
+            return GetIntegerFromAppSettings("maxNumberOfParticipants", 0);
+        }
+    }
+#endregion //Settings - Integer
 
-#End Region 'Settings - Boolean
+#region "other types"
+    public static ConferenceStatus.ConferenceStates workshopStatus{
+        get{
+            ConferenceStatus.ConferenceStates ausgabe = ConferenceStatus.ConferenceStates.registration_closed;
+            string val = GetStringFromAppSettings("workshopStatus");
+            foreach (ConferenceStatus.ConferenceStates c in Enum.GetValues(typeof(ConferenceStatus.ConferenceStates))){
+                if (val == Enum.GetName(typeof(ConferenceStatus.ConferenceStates),c)) {
+                    ausgabe = c;
+                    break;
+                }
+            }
+            return ausgabe;
+        }
+    }
+#endregion //other types
 
-#Region "Settings - Integer"
-    public static readonly Property maxNumberOfParticipants As Integer
-        Get
-            return GetIntegerFromAppSettings("maxNumberOfParticipants", 0)
-        End Get
-    End Property
-#End Region 'Settings - Integer
+#region "Procedures"
+    /// <summary>
+    /// Converts the value stored in ConfigurationManager.AppSettings section to boolean.
+    /// If the key doesn't exist - returns standardValue from second parameter.
+    /// </summary>
+    /// <param name="settingName">AppSettings key name</param>
+    /// <param name="standardValue">Value to use if the AppSettings key doesn't exist</param>
+    /// <returns></returns>
+    /// <remarks></remarks>
+    protected static Boolean GetBooleanFromAppSettings(string settingName, Boolean standardValue){
+        Boolean ausgabe  = standardValue;
+        string settingValue = ConfigurationManager.AppSettings[settingName];
+        if (!(String.IsNullOrEmpty(settingValue))){
+            if (settingValue == "1" | 
+                settingValue.ToLower() == "yes" | 
+                settingValue.ToLower() == "ja" | 
+                settingValue.ToLower() == "true"){
 
-#Region "other types"
-    public static readonly Property workshopStatus As ConferenceStatus.ConferenceStates
-        Get
-            Dim ausgabe As ConferenceStatus.ConferenceStates = ConferenceStatus.ConferenceStates.registration_closed
-            Dim val As String = GetStringFromAppSettings("workshopStatus")
-            For Each c As ConferenceStatus.ConferenceStates In [Enum].GetValues(GetType(ConferenceStatus.ConferenceStates))
-                If val = [Enum].GetName(GetType(ConferenceStatus.ConferenceStates), c) Then
-                    ausgabe = c
-                    Exit For
-                End If
-            Next
-            return ausgabe
-        End Get
-    End Property
-#End Region 'other types
+                ausgabe = true;
+            }
+            else{
+                ausgabe = false;
+            }
+        }
 
-#Region "Procedures"
-    ''' <summary>
-    ''' Converts the value stored in ConfigurationManager.AppSettings section to boolean.
-    ''' If the key doesn't exist - returns standardValue from second parameter.
-    ''' </summary>
-    ''' <param name="settingName">AppSettings key name</param>
-    ''' <param name="standardValue">Value to use if the AppSettings key doesn't exist</param>
-    ''' <returns></returns>
-    ''' <remarks></remarks>
-    Protected static Function GetBooleanFromAppSettings(ByVal settingName As String, ByVal standardValue As Boolean) As Boolean
-        Dim ausgabe As Boolean = standardValue
-        Dim settingValue As String = ConfigurationManager.AppSettings(settingName)
-        If Not String.IsNullOrEmpty(settingValue) Then
-            If settingValue = "1" Or _
-               settingValue.ToLower = "yes" Or _
-               settingValue.ToLower = "ja" Or _
-               settingValue.ToLower = "true" Then
-
-                ausgabe = True
-            Else
-                ausgabe = False
-            End If
-        End If
-
-        return ausgabe
-    End Function
+        return ausgabe;
+    }
 
     /// <summary>
     /// Converts the value stored in ConfigurationManager.AppSettings section to integer.
@@ -164,16 +148,17 @@ namespace MVCJpgKeywords.MyClasses
     /// <param name="standardValue">Value to use if the AppSettings key doesn't exist</param>
     /// <returns></returns>
     /// <remarks></remarks>
-    internal static int GetIntegerFromAppSettings(ByVal settingName As String, ByVal standardValue As Integer){
+    protected static int GetIntegerFromAppSettings(string settingName, int standardValue){
         int ausgabe = standardValue;
-        string settingValue= ConfigurationManager.AppSettings(settingName);
-        If Not String.IsNullOrEmpty(settingValue) Then
-            Try
-                ausgabe = CType(settingValue, Integer)
-            Catch ex As Exception
-            End Try
-        End If
-        return ausgabe
+        string settingValue= ConfigurationManager.AppSettings[settingName];
+        if (!(String.IsNullOrEmpty(settingValue))){
+            try
+            {
+                ausgabe = Int32.Parse(settingValue);
+            }
+            catch { }
+        }
+        return ausgabe;
        }
 
     /// <summary>
@@ -183,85 +168,90 @@ namespace MVCJpgKeywords.MyClasses
     /// <param name="standardValue">Value to use if the AppSettings key doesn't exist.</param>
     ///returns></returns>
     /// <remarks></remarks>
-    internal static string GetStringFromAppSettings(string settingName, string standardValue = "") {  
-        Dim ausgabe As String = ConfigurationManager.AppSettings(settingName)
-        If ausgabe Is Nothing Then ausgabe = standardValue
-        return ausgabe
+    protected static string GetStringFromAppSettings(string settingName, string standardValue = "") {  
+        string ausgabe = ConfigurationManager.AppSettings[settingName];
+        if (ausgabe == null){
+            ausgabe = standardValue;
+        }
+        return ausgabe;
     }
 
     public static List<string> EnumerateAppSettingKeys() {
-        List<string> ausgabe;
-        For Each k As String In ConfigurationManager.AppSettings.Keys
-            If Not k = "AppSettingsTemplate" Then
-                ausgabe.Add(k)
-            End If
-        Next
-        return ausgabe
+        List<string> ausgabe = new List<string>();
+        foreach (string k in ConfigurationManager.AppSettings.Keys){
+            if (!(k == "AppSettingsTemplate")){
+                ausgabe.Add(k);
+            }
+        }
+        return ausgabe;
     }
 
-    public static Function EnumerateAppSettingsTemplate() As List(Of String)
-        Dim ausgabe As New List(Of String)
-        For Each s As String In AppSettingsTemplate.Split(";")
-            ausgabe.Add(s)
-        Next
-        return ausgabe
-    End Function
+    public static List<string> EnumerateAppSettingsTemplate() {
+        List<string> ausgabe = new List<string>();
+        foreach (string s in AppSettingsTemplate.Split(';')){
+            ausgabe.Add(s);
+        }
+        return ausgabe;
+    }
 
-    public static Sub CheckConsistensyOfAppSettings()
-        Dim origS As List(Of String) = EnumerateAppSettingKeys()
-        Dim templS As List(Of String) = EnumerateAppSettingsTemplate()
 
-        Dim entriesToAdd As String = ""
-        Dim separator As String = ""
-        If templS.Count > 0 Then separator = ";"
+    public static void CheckConsistensyOfAppSettings(){
+        List<string> origS = EnumerateAppSettingKeys();
+        List<string> templS = EnumerateAppSettingsTemplate();
 
-        Dim alarmText As String = ""
+        string entriesToAdd = "";
+        string separator = "";
+        if (templS.Count > 0){
+            separator = ";";
+        }
 
-        Dim needSave As Boolean = False
+        string alarmText = "";
 
-        'removing from both arrays entries that match each other
-        For i As Integer = origS.Count - 1 To 0 Step -1
-            For j As Integer = templS.Count - 1 To 0 Step -1
-                If origS(i).ToLower = templS(j).ToLower Then
-                    origS.RemoveAt(i)
-                    templS.RemoveAt(j)
-                    Exit For
-                End If
-            Next
-        Next
+        Boolean  needSave = false;
 
-        For Each s As String In origS
-            entriesToAdd += separator + s
-            separator = ";"
-            needSave = True
-        Next
+        //removing from both arrays entries that match each other
+        for (int i = origS.Count - 1;i>=0; i--){
+            for (int j = templS.Count - 1;j>=0;j--){ 
+            if (origS[i].ToLower() == templS[j].ToLower()){
+                origS.RemoveAt(i);
+                templS.RemoveAt(j);
+                break;
+            }
+            }
+        }
 
-        If needSave Then
-            AppSettingsTemplate += entriesToAdd
-        End If
+        foreach (string s in origS){
+            entriesToAdd += separator + s;
+            separator = ";";
+            needSave = true;
+        }
 
-        For Each s As String In templS
-            alarmText += s + vbCrLf
-        Next
+        if (needSave){ 
+            AppSettingsTemplate += entriesToAdd;
+        }
 
-        If Not String.IsNullOrEmpty(alarmText) Then
-            alarmText = "Some AppSettings entries are missing. Please add following AppSettings entries to your web configuration, or remove them from AppSettingsTemplate section of Web.config:" + vbCrLf + alarmText
-            Throw New Exception(alarmText)
-        End If
+        foreach(string s in templS){
+            alarmText += s + "/r";
+        }
 
-        'analize remaining entries.
-    End Sub
+        if (!(String.IsNullOrEmpty(alarmText))){
+           alarmText = "Some AppSettings entries are missing. Please add following AppSettings entries to your web configuration, or remove them from AppSettingsTemplate section of Web.config:\r" + alarmText;
+           throw new Exception(alarmText);
+        }
 
-#End Region 'Procedures
+        //analize remaining entries.
+    }
+
+#endregion //Procedures
 
     }
 
 public class AppSettingsTemplateConfSection:System.Configuration.ConfigurationSection{
 
-    [ConfigurationProperty("settingKeys", DefaultValue:="", IsRequired:=True)]
+    [ConfigurationProperty("settingKeys", DefaultValue = "", IsRequired = true)]
     public string settingKeys{
-        get{return CType(Me("settingKeys"), String);}
-        set{Me("settingKeys") = value;}
+        get{return (string)this["settingKeys"];}
+        set{this["settingKeys"] = value;}
     }
 }
 
