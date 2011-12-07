@@ -11,9 +11,11 @@ namespace MVCJpgKeywords.Controllers
         //
         // GET: /Home/
 
-        public string Index()
+        public ActionResult  Index()
         {
-            return "Hello World! (from jpg_keywords) Title: " + MyClasses.MyAppSettings.PageTitlePrefix;
+//return "Hello World! (from jpg_keywords) Title: " + MyClasses.MyAppSettings.PageTitlePrefix;
+            ViewBag.Title = MyClasses.MyAppSettings.PageTitlePrefix + " - Index";
+            return View();
         }
 
     }
